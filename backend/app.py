@@ -17,6 +17,14 @@ def init_db():
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )
     ''')
+    
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL,
+        password TEXT NOT NULL
+    )
+    ''')
     # Sample data for development/testing purposes
     c.execute('SELECT COUNT(*) FROM deals')
     if c.fetchone()[0] == 0:
@@ -25,6 +33,15 @@ def init_db():
         VALUES
         ('Test Taco Place', 'Buy 1 Get 1 Free Tacos', '4.99', 'Tuesday', 'yahir'),
         ('Fake Pho Spot', 'Half Off Pho Bowls', '6.00', 'Wednesday', 'tester')
+        ''')
+        
+    c.execute('SELECT COUNT(*) FROM users')
+    if c.fetchone()[0] == 0:
+        c.execute('''
+        INSERT INTO users (email, password)
+        VALUES
+        ('example@gmail.com', 'password'),
+        ('example2@gmail.com', 'password2')
         ''')
     conn.commit()
     conn.close()
@@ -57,14 +74,32 @@ def add_deal():
     conn.close()
     return jsonify({"message": "Deal added successfully!"}), 201
 
-@app.route('/api/register', methods=['POST'])
+@app.route('/api/register', methods=['POST', 'GET'])
 def register():
-    data = request.json
+    data = request.get_json()
+    conn = get_db_connection()
     if not data:
         return jsonify({'message': 'Invalid JSON'}), 400
     email = data.get("email")
     password = data.get("password")
-    return jsonify({'message': "Registered successfully!"})
+    conn.execute(
+        'INSERT INTO users (email, password) VALUES (?, ?)',
+        (email, password)
+    )
+    conn.commit()
+    conn.close()
+    return jsonify({'message': "Registered successfully!"}), 201
+
+@app.route('/api/debug/users', methods=['GET'])
+def debug_users():
+    conn = get_db_connection()
+    users = conn.execute('SELECT * FROM users').fetchall()
+    conn.close()
+    for user in users:
+        print(dict(user))  
+    return jsonify([dict(user) for user in users])  
+
+
 
 if __name__ == '__main__':
     init_db()
