@@ -125,7 +125,8 @@ def login():
     hashed_password = user['password']
     
     if password == hashed_password:
-        return jsonify({'message': "Successfully Logged In!!"}), 201
+        
+        return jsonify({'message': "Successfully Logged In!!", 'success': True}), 201
     else:
         return jsonify({'message': "Invalid password"}), 401
 

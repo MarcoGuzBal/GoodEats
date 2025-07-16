@@ -1,7 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react' 
+import { useNavigate } from 'react-router-dom';
 import "./RegistrationPage.css"
 
 function LoginPage() {
+
+  const navigate = useNavigate();
 
   const [action, setAction] = useState("Login");
   const [formData, setFormData] = useState({ email: "", password: "" })
@@ -10,6 +13,7 @@ function LoginPage() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   }
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,6 +31,11 @@ function LoginPage() {
 
       const result = await response.json()
       alert(result.message)
+      
+      if (response.ok && result.success) {
+        console.log(result.message);
+        navigate('/')
+      }
 
     } catch (error) {
       console.error("Error", error)
