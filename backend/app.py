@@ -107,7 +107,7 @@ def register():
         conn.commit()
         conn.close()
         
-        return jsonify({'message': "Registered successfully!"}), 201
+        return jsonify({'message': "Registered successfully!", 'success': True}), 201
 
 @app.route('/api/login', methods=['POST', 'GET'])
 def login():
@@ -125,12 +125,12 @@ def login():
     hashed_password = user['password']
     
     if password == hashed_password:
-        
         return jsonify({'message': "Successfully Logged In!!", 'success': True}), 201
     else:
         return jsonify({'message': "Invalid password"}), 401
-
-@app.route('/api/debug/users', methods=['GET'])
+    
+# Used to see all users
+@app.route('/api/users', methods=['GET'])
 def debug_users():
     conn = get_db_connection()
     users = conn.execute('SELECT * FROM users').fetchall()
@@ -138,7 +138,6 @@ def debug_users():
     for user in users:
         print(dict(user))  
     return jsonify([dict(user) for user in users]) 
-
 
 
 if __name__ == '__main__':

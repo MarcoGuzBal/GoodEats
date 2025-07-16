@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
 import "./RegistrationPage.css"
+import { useNavigate } from 'react-router-dom';
 
 function RegistrationPage() {
+
+  const navigate = useNavigate();
 
   const [action, setAction] = useState("Sign Up");
   const [formData, setFormData] = useState({ email: "", password: "" })
@@ -15,7 +18,6 @@ function RegistrationPage() {
     e.preventDefault();
     const endpoint = 'http://localhost:5000/api/register'
 
-    console.log(formData)
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -27,6 +29,11 @@ function RegistrationPage() {
 
       const result = await response.json()
       alert(result.message)
+
+      if (response.ok && result.success) {
+        console.log(result.message);
+        navigate('/login')
+      }
 
     } catch (error) {
       console.error("Error", error)
