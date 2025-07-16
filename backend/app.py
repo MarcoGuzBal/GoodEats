@@ -1,8 +1,11 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_bcrypt import Bcrypt
+
 import sqlite3
 app = Flask(__name__)
 CORS(app)
+bcrypt = Bcrypt(app)
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
@@ -51,6 +54,16 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def validate_username(username):
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE email = ?', (username,)).fetchone()
+    conn.close()
+    
+    if user:
+        raise ValueError(f"User with email {username} already exists")
+    else:
+        return True
+
 @app.route('/api/data')
 def get_data():
     return jsonify({"message": "Hello from Flask!"})
@@ -77,18 +90,44 @@ def add_deal():
 @app.route('/api/register', methods=['POST', 'GET'])
 def register():
     data = request.get_json()
+    if not data:
+        return jsonify({'message': 'Invalid JSON'}), 400
+    email = data.get("email")
+    password = data.get('password')
+    # hashed_password = bcrypt.generate_password_hash(data.get("password"))
+    
+    if not validate_username(email):
+        print("Invalid Email")
+    else:
+        conn = get_db_connection()
+        conn.execute(
+            'INSERT INTO users (email, password) VALUES (?, ?)',
+            (email, password)
+        )
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'message': "Registered successfully!"}), 201
+
+@app.route('/api/login', methods=['POST', 'GET'])
+def login():
+    data = request.get_json()
     conn = get_db_connection()
     if not data:
         return jsonify({'message': 'Invalid JSON'}), 400
     email = data.get("email")
     password = data.get("password")
-    conn.execute(
-        'INSERT INTO users (email, password) VALUES (?, ?)',
-        (email, password)
-    )
+    
+    user = conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
     conn.commit()
     conn.close()
-    return jsonify({'message': "Registered successfully!"}), 201
+    
+    hashed_password = user['password']
+    
+    if password == hashed_password:
+        return jsonify({'message': "Successfully Logged In!!"}), 201
+    else:
+        return jsonify({'message': "Invalid password"}), 401
 
 @app.route('/api/debug/users', methods=['GET'])
 def debug_users():
@@ -97,7 +136,7 @@ def debug_users():
     conn.close()
     for user in users:
         print(dict(user))  
-    return jsonify([dict(user) for user in users])  
+    return jsonify([dict(user) for user in users]) 
 
 
 

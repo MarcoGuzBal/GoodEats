@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import "./RegistrationPage.css"
 
-function RegistrationPage() {
+function LoginPage() {
 
-  const [action, setAction] = useState("Sign Up");
+  const [action, setAction] = useState("Login");
   const [formData, setFormData] = useState({ email: "", password: "" })
 
   const handleChange = (e) => {
@@ -13,7 +13,7 @@ function RegistrationPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const endpoint = 'http://localhost:5000/api/register'
+    const endpoint = 'http://localhost:5000/api/login'
 
     console.log(formData)
     try {
@@ -53,10 +53,10 @@ function RegistrationPage() {
         </form>
       </div>
       <div className='submit-container'>
-        <div className={action==="Login"?"submit gray":"submit"} onClick={handleSubmit}>Sign Up</div>
+        <div className={action==="Submit"?"submit gray":"submit"} onClick={handleSubmit}>Log In</div>
       </div>
     </div>
   )
 }
 
-export default RegistrationPage
+export default LoginPage
