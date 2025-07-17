@@ -6,6 +6,7 @@ function Home() {
   const [filteredDeals, setFilteredDeals] = useState([]);
   const [cuisineFilter, setCuisineFilter] = useState('All');
   const [locationFilter, setLocationFilter] = useState('');
+  const [user, setUser] = useState(null);
   const [openNow, setOpenNow] = useState(false);
   const [radius, setRadius] = useState('5');
   const navigate = useNavigate();
@@ -18,6 +19,26 @@ function Home() {
         setFilteredDeals(data);
       })
       .catch((err) => console.error("Error fetching deals:", err));
+  }, []);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/@me', {
+      method: 'GET',
+      credentials: 'include',
+    })
+      .then((response) => {
+        console.log('Response status:', response.status);
+        return response.json();
+      })
+      .then((data) => {
+        console.log('Response data:', data);
+        if (data.error) {
+          console.error(data.error);
+        } else {
+          setUser(data); 
+        }
+      })
+      .catch((error) => console.error('Error:', error));
   }, []);
 
   const applyFilters = () => {
@@ -99,12 +120,14 @@ function Home() {
             <input type="checkbox" checked={openNow} onChange={() => setOpenNow(!openNow)} />
             <span>Open Now</span>
           </label>
-          <button
-            onClick={() => navigate('/submit')}
-            className="bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700"
-          >
-            Submit a Deal
-          </button>
+          {user && (
+            <button
+              onClick={() => navigate('/submit')}
+              className="bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700"
+            >
+              Submit a Deal
+            </button>
+          )}
         </div>
       </div>
 

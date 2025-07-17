@@ -4,7 +4,9 @@ import SubmitDeal from './pages/SubmitDeal';
 import RegistrationPage from './pages/RegistrationPage';
 import LoginPage from './pages/LoginPage';
 import './index.css';
+
 function App() {
+
   return (
     <Router>
       <Routes>
