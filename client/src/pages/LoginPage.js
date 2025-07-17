@@ -1,71 +1,94 @@
-import React, { useState } from 'react' 
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import "./RegistrationPage.css"
 
 function LoginPage() {
-
   const navigate = useNavigate();
-
-  const [action, setAction] = useState("Login");
-  const [formData, setFormData] = useState({ email: "", password: "" })
+  const [action] = useState("Login");
+  const [formData, setFormData] = useState({ email: "", password: "" });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  }
-
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const endpoint = 'http://localhost:5000/api/login'
+    const endpoint = 'http://localhost:5000/api/login';
 
-    console.log(formData)
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
 
-      const result = await response.json()
-      alert(result.message)
-      
+      const result = await response.json();
+      alert(result.message);
+
       if (response.ok && result.success) {
         console.log(result.message);
-        navigate('/')
+        navigate('/');
       }
-
     } catch (error) {
-      console.error("Error", error)
-      alert("Failed to connect to server")
+      console.error("Error", error);
+      alert("Failed to connect to server");
     }
   };
 
   return (
-    <div className='container'>
-      <div className='header'>
-        <div className='text'>{action}</div>
-        <div className='underline'></div>
-      </div>
-      <div className="inputs">
-        <form onSubmit={handleSubmit} >
-          <div className="input">
-            <label htmlFor="email">Enter your email </label>
-            <input type= "email" name="email" value={FormData.email} onChange={handleChange} required />
+    <div className="min-h-screen bg-blue-50 flex items-center justify-center px-4">
+      <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md">
+        <h2 className="text-3xl font-bold text-blue-800 text-center mb-6">{action}</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email Address
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
-          <div className="input">
-            <label hrmlFor="password">Enter your password: </label>
-            <input type= "password" name="password" value={FormData.password} onChange={handleChange}required />
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-700 transition"
+          >
+            Log In
+          </button>
         </form>
-      </div>
-      <div className='submit-container'>
-        <div className={action==="Submit"?"submit gray":"submit"} onClick={handleSubmit}>Log In</div>
+
+        <p className="mt-4 text-sm text-gray-600 text-center">
+          Don’t have an account?{' '}
+          <span
+            className="text-blue-600 hover:underline cursor-pointer"
+            onClick={() => navigate('/register')}
+          >
+            Sign Up
+          </span>
+        </p>
       </div>
     </div>
-  )
+  );
 }
 
-export default LoginPage
+export default LoginPage;
