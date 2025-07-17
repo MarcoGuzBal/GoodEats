@@ -3,6 +3,8 @@ from flask_session import Session
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
+import os
+import shutil
 
 app = Flask(__name__)
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -13,6 +15,13 @@ app.secret_key = '9f8b7c4e2a3d1f6e8c9a0b7d5e4f3c2a'
 CORS(app, supports_credentials=True)
 Session(app)
 
+
+def clear_session_files():
+    session_folder = './flask_session'  # or the folder where sessions are stored
+    if os.path.exists(session_folder):
+        shutil.rmtree(session_folder)  # delete the whole session folder
+        os.makedirs(session_folder) 
+        
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
@@ -150,6 +159,11 @@ def debug_users():
     conn.close()
     return jsonify([dict(user) for user in users]) 
 
+@app.route('/api/logout', methods=["POST"])
+def logout():
+    session.clear()
+    return jsonify({"message": "Logged out successfully"})
+
 @app.route('/@me')
 def get_current_user():
     user_id = session.get('user')
@@ -170,6 +184,8 @@ def get_current_user():
     print(f"User data being sent: {user_dict}") 
     return jsonify(user_dict) 
 
+
 if __name__ == '__main__':
+    clear_session_files() 
     init_db()
     app.run(debug=True, host='0.0.0.0')
