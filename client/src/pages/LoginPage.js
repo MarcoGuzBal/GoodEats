@@ -1,9 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react' 
+import { useNavigate } from 'react-router-dom';
 import "./RegistrationPage.css"
 
-function RegistrationPage() {
+function LoginPage() {
 
-  const [action, setAction] = useState("Sign Up");
+  const navigate = useNavigate();
+
+  const [action, setAction] = useState("Login");
   const [formData, setFormData] = useState({ email: "", password: "" })
 
   const handleChange = (e) => {
@@ -11,9 +14,10 @@ function RegistrationPage() {
     setFormData({ ...formData, [name]: value });
   }
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const endpoint = 'http://localhost:5000/api/register'
+    const endpoint = 'http://localhost:5000/api/login'
 
     console.log(formData)
     try {
@@ -27,6 +31,11 @@ function RegistrationPage() {
 
       const result = await response.json()
       alert(result.message)
+      
+      if (response.ok && result.success) {
+        console.log(result.message);
+        navigate('/')
+      }
 
     } catch (error) {
       console.error("Error", error)
@@ -53,10 +62,10 @@ function RegistrationPage() {
         </form>
       </div>
       <div className='submit-container'>
-        <div className={action==="Login"?"submit gray":"submit"} onClick={handleSubmit}>Sign Up</div>
+        <div className={action==="Submit"?"submit gray":"submit"} onClick={handleSubmit}>Log In</div>
       </div>
     </div>
   )
 }
 
-export default RegistrationPage
+export default LoginPage
