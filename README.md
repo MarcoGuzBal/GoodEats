@@ -6,6 +6,7 @@ GoodEats
 
 ## Technologies
 - **ReactJS**
+- **Tailwind CSS**
 - **Flask**
 - **SQLite**
 
