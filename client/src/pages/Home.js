@@ -24,18 +24,18 @@ function Home() {
   useEffect(() => {
     fetch('http://localhost:5000/@me', {
       method: 'GET',
-      credentials: 'include', // Include cookies in the request
+      credentials: 'include',
     })
       .then((response) => {
-        console.log('Response status:', response.status); // Log the response status
+        console.log('Response status:', response.status);
         return response.json();
       })
       .then((data) => {
-        console.log('Response data:', data); // Log the response data
+        console.log('Response data:', data);
         if (data.error) {
           console.error(data.error);
         } else {
-          setUser(data); // Set the user data
+          setUser(data); 
         }
       })
       .catch((error) => console.error('Error:', error));
