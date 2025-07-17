@@ -1,10 +1,10 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 
 import sqlite3
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
 bcrypt = Bcrypt(app)
 def init_db():
     conn = sqlite3.connect('database.db')
@@ -125,9 +125,17 @@ def login():
     hashed_password = user['password']
     
     if password == hashed_password:
+        session['user_id'] = email
         return jsonify({'message': "Successfully Logged In!!", 'success': True}), 201
     else:
         return jsonify({'message': "Invalid password"}), 401
+    
+@app.route('/api/check_login', methods=['GET'])
+def check_login():
+    if 'user_id' in session:
+        return jsonify({'logged_in': True, 'user_id': session['user_id']})
+    else:
+        return jsonify({'logged_in': False})
     
 # Used to see all users
 @app.route('/api/users', methods=['GET'])
