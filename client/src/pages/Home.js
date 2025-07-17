@@ -6,6 +6,7 @@ function Home() {
   const [filteredDeals, setFilteredDeals] = useState([]);
   const [cuisineFilter, setCuisineFilter] = useState('All');
   const [locationFilter, setLocationFilter] = useState('');
+  const [user, setUser] = useState(null);
   const [openNow, setOpenNow] = useState(false);
   const [radius, setRadius] = useState('5');
   const navigate = useNavigate();
@@ -18,6 +19,26 @@ function Home() {
         setFilteredDeals(data);
       })
       .catch((err) => console.error("Error fetching deals:", err));
+  }, []);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/@me', {
+      method: 'GET',
+      credentials: 'include', // Include cookies in the request
+    })
+      .then((response) => {
+        console.log('Response status:', response.status); // Log the response status
+        return response.json();
+      })
+      .then((data) => {
+        console.log('Response data:', data); // Log the response data
+        if (data.error) {
+          console.error(data.error);
+        } else {
+          setUser(data); // Set the user data
+        }
+      })
+      .catch((error) => console.error('Error:', error));
   }, []);
 
   const applyFilters = () => {

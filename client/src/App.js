@@ -3,9 +3,8 @@ import Home from './pages/Home';
 import SubmitDeal from './pages/SubmitDeal';
 import RegistrationPage from './pages/RegistrationPage';
 import LoginPage from './pages/LoginPage';
-import { useState, useEffect } from 'react';
-
 import './index.css';
+
 function App() {
 
   return (

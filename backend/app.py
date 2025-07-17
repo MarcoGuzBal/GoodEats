@@ -2,12 +2,15 @@ from flask import Flask, jsonify, request, session
 from flask_session import Session
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
-
 import sqlite3
+
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
-app.secret_key = 'supersecretkey'  # Needed for session to work
 app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True  
+app.config['SESSION_KEY_PREFIX'] = 'auth_'
+app.secret_key = '9f8b7c4e2a3d1f6e8c9a0b7d5e4f3c2a'
+CORS(app, supports_credentials=True)
 Session(app)
 
 def init_db():
@@ -126,7 +129,7 @@ def login():
     conn.close()
         
     if check_password_hash(user['password'], password):
-        session['user'] = email
+        session['user'] = user['email']
         return jsonify({'message': "Successfully Logged In!!", 'success': True}), 201
     else:
         return jsonify({'message': "Invalid password"}), 401
@@ -145,10 +148,27 @@ def debug_users():
     conn = get_db_connection()
     users = conn.execute('SELECT * FROM users').fetchall()
     conn.close()
-    for user in users:
-        print(dict(user))  
     return jsonify([dict(user) for user in users]) 
 
+@app.route('/@me')
+def get_current_user():
+    user_id = session.get('user')
+    
+    if not user_id:
+        return jsonify({'error': "unathorized"}), 401
+    
+    conn = get_db_connection()
+    
+    user = conn.execute('SELECT * FROM users WHERE email = ?', (user_id,)).fetchone()
+    conn.commit()
+    conn.close()
+    
+    if not user:
+        return jsonify({'error': "User not found"}), 404
+
+    user_dict = dict(user)
+    print(f"User data being sent: {user_dict}") 
+    return jsonify(user_dict) 
 
 if __name__ == '__main__':
     init_db()
