@@ -14,16 +14,14 @@ function LoginPage() {
     setFormData({ ...formData, [name]: value });
   }
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const endpoint = 'http://localhost:5000/api/login'
 
-    console.log(formData)
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
-        credentials: 'include',
+        //credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },

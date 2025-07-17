@@ -1,11 +1,10 @@
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
-from flask_bcrypt import Bcrypt
+from werkzeug.security import generate_password_hash, check_password_hash
 
 import sqlite3
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-bcrypt = Bcrypt(app)
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
@@ -24,7 +23,7 @@ def init_db():
     c.execute('''
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL
     )
     ''')
@@ -94,15 +93,16 @@ def register():
         return jsonify({'message': 'Invalid JSON'}), 400
     email = data.get("email")
     password = data.get('password')
-    # hashed_password = bcrypt.generate_password_hash(data.get("password"))
-    
+    hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
+
+        
     if not validate_username(email):
         print("Invalid Email")
     else:
         conn = get_db_connection()
         conn.execute(
             'INSERT INTO users (email, password) VALUES (?, ?)',
-            (email, password)
+            (email, hashed_password)
         )
         conn.commit()
         conn.close()
@@ -113,19 +113,15 @@ def register():
 def login():
     data = request.get_json()
     conn = get_db_connection()
-    if not data:
-        return jsonify({'message': 'Invalid JSON'}), 400
     email = data.get("email")
     password = data.get("password")
     
     user = conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
     conn.commit()
     conn.close()
-    
-    hashed_password = user['password']
-    
-    if password == hashed_password:
-        session['user_id'] = email
+        
+    if check_password_hash(user['password'], password):
+        #session['user_id'] = email
         return jsonify({'message': "Successfully Logged In!!", 'success': True}), 201
     else:
         return jsonify({'message': "Invalid password"}), 401
