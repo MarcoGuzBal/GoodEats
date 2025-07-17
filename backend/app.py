@@ -1,10 +1,15 @@
 from flask import Flask, jsonify, request, session
+from flask_session import Session
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import sqlite3
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
+app.secret_key = 'supersecretkey'  # Needed for session to work
+app.config['SESSION_TYPE'] = 'filesystem'
+Session(app)
+
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
@@ -121,15 +126,16 @@ def login():
     conn.close()
         
     if check_password_hash(user['password'], password):
-        #session['user_id'] = email
+        session['user'] = email
         return jsonify({'message': "Successfully Logged In!!", 'success': True}), 201
     else:
         return jsonify({'message': "Invalid password"}), 401
     
 @app.route('/api/check_login', methods=['GET'])
 def check_login():
-    if 'user_id' in session:
-        return jsonify({'logged_in': True, 'user_id': session['user_id']})
+    if 'user' in session:
+        print("User is logged in")
+        return jsonify({'logged_in': True, 'user_id': session['user']})
     else:
         return jsonify({'logged_in': False})
     

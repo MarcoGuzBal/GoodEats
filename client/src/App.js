@@ -7,22 +7,6 @@ import { useState, useEffect } from 'react';
 
 function App() {
 
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [userId, setUserId] = useState(null);
-
-  useEffect(() => {
-    fetch('http://localhost:5000/api/check_login', {
-      credentials: 'include'  
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.logged_in) {
-        setLoggedIn(true);
-        setUserId(data.user_id);
-      }
-    });
-  }, []);
-
   return (
     <Router>
       <Routes>
