@@ -3,43 +3,139 @@ import { useNavigate } from 'react-router-dom';
 
 function Home() {
   const [deals, setDeals] = useState([]);
+  const [filteredDeals, setFilteredDeals] = useState([]);
+  const [cuisineFilter, setCuisineFilter] = useState('All');
+  const [locationFilter, setLocationFilter] = useState('');
+  const [openNow, setOpenNow] = useState(false);
+  const [radius, setRadius] = useState('5');
   const navigate = useNavigate();
 
   useEffect(() => {
     fetch('http://localhost:5000/api/deals')
       .then((res) => res.json())
-      .then((data) => setDeals(data))
+      .then((data) => {
+        setDeals(data);
+        setFilteredDeals(data);
+      })
       .catch((err) => console.error("Error fetching deals:", err));
   }, []);
 
+  const applyFilters = () => {
+    const now = new Date();
+    let result = [...deals];
+
+    if (cuisineFilter !== 'All') {
+      result = result.filter(deal => deal.cuisine === cuisineFilter);
+    }
+
+    if (locationFilter) {
+      result = result.filter(deal =>
+        deal.location && deal.location.toLowerCase().includes(locationFilter.toLowerCase())
+      );
+    }
+
+    if (openNow) {
+      result = result.filter(deal => {
+        const [start, end] = (deal.hours || '').split('-');
+        if (!start || !end) return false;
+        const nowHour = now.getHours();
+        const startHour = parseInt(start.split(':')[0]);
+        const endHour = parseInt(end.split(':')[0]);
+        return nowHour >= startHour && nowHour <= endHour;
+      });
+    }
+
+    setFilteredDeals(result);
+  };
+
+  useEffect(() => {
+    applyFilters();
+  }, [cuisineFilter, locationFilter, openNow]);
+
+  const cuisines = ['All', 'Mexican', 'Asian', 'Italian', 'American', 'Indian', 'Middle Eastern', 'Vegan', 'BBQ', 'Seafood'];
+
   return (
-    <div style={{ maxWidth: '600px', margin: 'auto', padding: '1rem' }}>
-      <h1>Nearby Food Deals</h1>
-      <button
-        onClick={() => navigate('/submit')}
-        style={{
-          marginBottom: '1rem',
-          padding: '0.5rem 1rem',
-          backgroundColor: '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        Submit a Deal
-      </button>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {deals.map((deal) => (
-          <li key={deal.id} style={{ border: '1px solid #ccc', marginBottom: '1rem', padding: '1rem' }}>
-            <h2>{deal.restaurant}</h2>
-            <p>{deal.description}</p>
-            <p>Price: ${deal.price}</p>
-            <p>Valid on: {deal.days}</p>
-            <p>Posted by: {deal.user}</p>
-          </li>
-        ))}
-      </ul>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-50 via-blue-100 to-blue-200 rounded-xl p-6 mb-10 text-center shadow-md">
+        <h1 className="text-5xl font-bold text-blue-800 mb-2">GoodEats</h1>
+        <p className="text-blue-700 text-lg">Find local food deals near you. Filtered by cuisine, location, and hours</p>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white shadow-md rounded-lg p-4 mb-6 sticky top-0 z-20">
+        <div className="flex flex-wrap justify-center gap-3 mb-4">
+          {cuisines.map((type) => (
+            <button
+              key={type}
+              onClick={() => setCuisineFilter(type)}
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-150 transform hover:scale-105 ${
+                cuisineFilter === type ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-blue-100'
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap justify-center items-center gap-4">
+          <input
+            type="text"
+            placeholder="Enter ZIP or city"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+            className="border px-4 py-2 rounded w-64"
+          />
+          <select
+            value={radius}
+            onChange={(e) => setRadius(e.target.value)}
+            className="border px-4 py-2 rounded"
+          >
+            <option value="1">Within 1 mile</option>
+            <option value="5">Within 5 miles</option>
+            <option value="10">Within 10 miles</option>
+          </select>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={openNow} onChange={() => setOpenNow(!openNow)} />
+            <span>Open Now</span>
+          </label>
+          <button
+            onClick={() => navigate('/submit')}
+            className="bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700"
+          >
+            Submit a Deal
+          </button>
+        </div>
+      </div>
+
+      {/* Deals */}
+      {filteredDeals.length === 0 ? (
+        <p className="text-center text-gray-500">No deals found. Try adjusting your filters.</p>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredDeals.map((deal) => (
+            <div key={deal.id} className="relative border rounded-xl shadow-md p-5 bg-blue-50 hover:bg-blue-100 hover:shadow-xl transition-transform duration-300">
+              {deal.upvotes > 10 && (
+                <div className="absolute top-2 right-2 bg-yellow-300 text-xs px-2 py-1 rounded-full shadow text-yellow-900 font-semibold">
+                  Top Pick
+                </div>
+              )}
+              <h2 className="text-xl font-semibold text-blue-700">{deal.title || 'Untitled Deal'}</h2>
+              <p className="text-sm text-gray-600">{deal.restaurant}</p>
+              <p className="mt-2 text-green-600 font-bold text-lg">${deal.price}</p>
+              <p className="text-sm text-gray-600">Cuisine: {deal.cuisine}</p>
+              <p className="text-sm text-gray-600">Location: {deal.location || 'N/A'}</p>
+              <p className="text-sm text-gray-600">Hours: {deal.hours || 'N/A'}</p>
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-sm text-green-500">▲ {deal.upvotes || 0}</span>
+                <span className="text-sm text-red-500">▼ {deal.downvotes || 0}</span>
+              </div>
+              <p className="mt-2 text-sm text-gray-700">{deal.description}</p>
+              <p className="mt-1 text-xs text-gray-400">Posted by: {deal.user || 'Anonymous'}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
