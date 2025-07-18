@@ -41,6 +41,7 @@ function Home() {
       .catch((error) => console.error('Error:', error));
   }, []);
 
+
   const applyFilters = () => {
     const now = new Date();
     let result = [...deals];
@@ -73,10 +74,52 @@ function Home() {
     applyFilters();
   }, [cuisineFilter, locationFilter, openNow]);
 
+
+  const cuisines = [ 
+    'All',
+    'American',
+    'Mexican',
+    'Italian',
+    'Chinese',
+    'Japanese',
+    'Korean',
+    'Thai',
+    'Vietnamese',
+    'Indian',
+    'Middle Eastern',
+    'Mediterranean',
+    'African',
+    'Latin American',
+    'Caribbean',
+    'Soul Food',
+    'Vegan',
+    'Vegetarian',
+    'BBQ',
+    'Seafood',
+    'Desserts',
+    'Cafe / Bakery',
+    'Other'];
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+  {/* Log Out Button */}
+  <div className="flex justify-end mb-4">
+    <button
+      onClick={() => {
+        localStorage.clear(); 
+        navigate('/login');
+      }}
+      className="text-sm text-blue-700 border border-blue-600 px-4 py-2 rounded-md hover:bg-blue-100 transition"
+    >
+      Log Out
+    </button>
+  </div>
+
   const cuisines = ['All', 'Mexican', 'Asian', 'Italian', 'American', 'Indian', 'Middle Eastern', 'Vegan', 'BBQ', 'Seafood'];
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-50 via-blue-100 to-blue-200 rounded-xl p-6 mb-10 text-center shadow-md">
         <h1 className="text-5xl font-bold text-blue-800 mb-2">GoodEats</h1>
@@ -120,6 +163,14 @@ function Home() {
             <input type="checkbox" checked={openNow} onChange={() => setOpenNow(!openNow)} />
             <span>Open Now</span>
           </label>
+
+          <button
+            onClick={() => navigate('/submit')}
+            className="bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700"
+          >
+            Submit a Deal
+          </button>
+
           {user && (
             <button
               onClick={() => navigate('/submit')}

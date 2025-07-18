@@ -1,10 +1,10 @@
+
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 
 function RegistrationPage() {
 
   const navigate = useNavigate();
-
   const [action, setAction] = useState("Sign Up");
   const [formData, setFormData] = useState({ email: "", password: "" });
 
