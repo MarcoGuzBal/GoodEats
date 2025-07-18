@@ -68,11 +68,9 @@ function SubmitDeal() {
             { name: 'restaurant', label: 'Restaurant Name' },
             { name: 'description', label: 'Description' },
             { name: 'price', label: 'Price' },
-            { name: 'days', label: 'Valid Days' },
             { name: 'hours', label: 'Valid Hours (e.g. 11:00-21:00)' },
             { name: 'cuisine', label: 'Cuisine Type (e.g. Mexican, Asian)' },
             { name: 'location', label: 'Location (ZIP or Area)' },
-
             { name: 'days', label: 'Valid Days / Hours' },
           ].map(({ name, label }) => (
             <div key={name}>
