@@ -6,7 +6,7 @@ function LoginPage() {
   const [action] = useState("Login");
   const [formData, setFormData] = useState({ email: "", password: "" });
 
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
