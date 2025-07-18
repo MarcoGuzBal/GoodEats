@@ -16,17 +16,17 @@ function SubmitDeal() {
   useEffect(() => {
     fetch('http://localhost:5000/@me', {
       method: 'GET',
-      credentials: 'include', // Include cookies in the request
+      credentials: 'include', 
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.error) {
           console.error(data.error);
         } else {
-          setUser(data.email); // Set the user state to the username (email)
+          setUser(data.email);
           setFormData((prevFormData) => ({
             ...prevFormData,
-            user: data.email, // Update the formData with the username
+            user: data.email, 
           }));
         }
       })

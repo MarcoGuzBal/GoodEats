@@ -41,6 +41,19 @@ function Home() {
       .catch((error) => console.error('Error:', error));
   }, []);
 
+  function vote(type, id) {
+    fetch(`http://localhost:5000/api/deals/${id}/vote`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ vote: type }),
+    })
+    .then(res => res.json())
+    .then(data => console.log(data));
+  }
+
   const applyFilters = () => {
     const now = new Date();
     let result = [...deals];
@@ -150,8 +163,8 @@ function Home() {
               <p className="text-sm text-gray-600">Location: {deal.location || 'N/A'}</p>
               <p className="text-sm text-gray-600">Hours: {deal.hours || 'N/A'}</p>
               <div className="flex justify-between items-center mt-2">
-                <span className="text-sm text-green-500">▲ {deal.upvotes || 0}</span>
-                <span className="text-sm text-red-500">▼ {deal.downvotes || 0}</span>
+                <button className="text-sm text-green-500" onClick={() => vote('up', deal.id)}>▲ {deal.upvotes || 0}</button>
+                <button className="text-sm text-red-500" onClick={() => vote('down', deal.id)}>▼ {deal.downvotes || 0}</button>
               </div>
               <p className="mt-2 text-sm text-gray-700">{deal.description}</p>
               <p className="mt-1 text-xs text-gray-400">Posted by: {deal.user || 'Anonymous'}</p>
