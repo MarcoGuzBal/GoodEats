@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom';
 
 function RegistrationPage() {
+
+  const navigate = useNavigate();
+
   const [action, setAction] = useState("Sign Up");
   const [formData, setFormData] = useState({ email: "", password: "" });
 
@@ -20,8 +24,14 @@ function RegistrationPage() {
         body: JSON.stringify(formData)
       });
 
-      const result = await response.json();
-      alert(result.message);
+      const result = await response.json()
+      alert(result.message)
+
+      if (response.ok && result.success) {
+        console.log(result.message);
+        navigate('/login')
+      }
+
     } catch (error) {
       console.error("Error", error);
       alert("Failed to connect to server");
