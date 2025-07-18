@@ -163,8 +163,8 @@ function Home() {
               <p className="text-sm text-gray-600">Location: {deal.location || 'N/A'}</p>
               <p className="text-sm text-gray-600">Hours: {deal.hours || 'N/A'}</p>
               <div className="flex justify-between items-center mt-2">
-                <button className="text-sm text-green-500" onClick={() => vote('up', deal.id)}>▲ {deal.upvotes || 0}</button>
-                <button className="text-sm text-red-500" onClick={() => vote('down', deal.id)}>▼ {deal.downvotes || 0}</button>
+                <button className="text-sm text-green-500" onClick={() => vote('up', deal.id)}>▲ {deal.votes || 0}</button>
+                <button className="text-sm text-red-500" onClick={() => vote('down', deal.id)}>▼ {deal.votes || 0}</button>
               </div>
               <p className="mt-2 text-sm text-gray-700">{deal.description}</p>
               <p className="mt-1 text-xs text-gray-400">Posted by: {deal.user || 'Anonymous'}</p>
