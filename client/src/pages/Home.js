@@ -114,12 +114,6 @@ function Home() {
       Log Out
     </button>
   </div>
-
-  const cuisines = ['All', 'Mexican', 'Asian', 'Italian', 'American', 'Indian', 'Middle Eastern', 'Vegan', 'BBQ', 'Seafood'];
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-50 via-blue-100 to-blue-200 rounded-xl p-6 mb-10 text-center shadow-md">
         <h1 className="text-5xl font-bold text-blue-800 mb-2">GoodEats</h1>
@@ -170,15 +164,6 @@ function Home() {
           >
             Submit a Deal
           </button>
-
-          {user && (
-            <button
-              onClick={() => navigate('/submit')}
-              className="bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700"
-            >
-              Submit a Deal
-            </button>
-          )}
         </div>
       </div>
 
