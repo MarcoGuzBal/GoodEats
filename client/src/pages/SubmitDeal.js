@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function SubmitDeal() {
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     restaurant: '',
     description: '',
@@ -14,6 +15,26 @@ function SubmitDeal() {
   });
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetch('http://localhost:5000/@me', {
+      method: 'GET',
+      credentials: 'include', 
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.error) {
+          console.error(data.error);
+        } else {
+          setUser(data.email);
+          setFormData((prevFormData) => ({
+            ...prevFormData,
+            user: data.email, 
+          }));
+        }
+      })
+      .catch((error) => console.error('Error:', error));
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -53,7 +74,6 @@ function SubmitDeal() {
             { name: 'location', label: 'Location (ZIP or Area)' },
 
             { name: 'days', label: 'Valid Days / Hours' },
-            { name: 'user', label: 'Your Name or Email' }
           ].map(({ name, label }) => (
             <div key={name}>
               <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor={name}>

@@ -33,7 +33,8 @@ def init_db():
         price TEXT,
         days TEXT,
         user TEXT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        votes INTEGER DEFAULT 0
     )
     ''')
     
@@ -102,6 +103,21 @@ def add_deal():
     conn.commit()
     conn.close()
     return jsonify({"message": "Deal added successfully!"}), 201
+
+@app.route('/api/deals/<int:deal_id>/vote', methods=['POST'])
+def vote_on_deal(deal_id):
+    data = request.get_json()
+    vote_type = data.get('vote')  
+
+    conn = get_db_connection()
+    if vote_type == 'up':
+        conn.execute('UPDATE deals SET votes = votes + 1 WHERE id = ?', (deal_id,))
+    else:
+        conn.execute('UPDATE deals SET votes = votes - 1 WHERE id = ?', (deal_id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': f'{vote_type}voted successfully!'}), 200
 
 @app.route('/api/register', methods=['POST', 'GET'])
 def register():
