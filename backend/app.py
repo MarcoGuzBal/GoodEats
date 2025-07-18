@@ -17,10 +17,10 @@ Session(app)
 
 
 def clear_session_files():
-    session_folder = './flask_session'  # or the folder where sessions are stored
+    session_folder = './flask_session'
     if os.path.exists(session_folder):
-        shutil.rmtree(session_folder)  # delete the whole session folder
-        os.makedirs(session_folder) 
+        shutil.rmtree(session_folder)
+        os.makedirs(session_folder)
         
 def init_db():
     conn = sqlite3.connect('database.db')
@@ -29,10 +29,15 @@ def init_db():
     CREATE TABLE IF NOT EXISTS deals (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         restaurant TEXT NOT NULL,
+        title TEXT,
         description TEXT NOT NULL,
         price TEXT,
         days TEXT,
+        hours TEXT,
+        cuisine TEXT,
         user TEXT,
+        address TEXT,
+        placeId TEXT,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         votes INTEGER DEFAULT 0
     )
@@ -45,16 +50,16 @@ def init_db():
         password TEXT NOT NULL
     )
     ''')
-    # Sample data for development/testing purposes
+
     c.execute('SELECT COUNT(*) FROM deals')
     if c.fetchone()[0] == 0:
         c.execute('''
-        INSERT INTO deals (restaurant, description, price, days, user)
+        INSERT INTO deals (restaurant, title, description, price, days, user)
         VALUES
-        ('Test Taco Place', 'Buy 1 Get 1 Free Tacos', '4.99', 'Tuesday', 'yahir'),
-        ('Fake Pho Spot', 'Half Off Pho Bowls', '6.00', 'Wednesday', 'tester')
+        ('Test Taco Place', 'Taco Tuesday', 'Buy 1 Get 1 Free Tacos', '4.99', 'Tuesday', 'yahir'),
+        ('Fake Pho Spot', 'Pho Discount', 'Half Off Pho Bowls', '6.00', 'Wednesday', 'tester')
         ''')
-        
+
     c.execute('SELECT COUNT(*) FROM users')
     if c.fetchone()[0] == 0:
         c.execute('''
@@ -92,13 +97,39 @@ def get_deals():
     conn.close()
     return jsonify([dict(deal) for deal in deals])
 
+@app.route('/api/deals/<int:deal_id>', methods=['GET'])
+def get_deal(deal_id):
+    conn = get_db_connection()
+    deal = conn.execute('SELECT * FROM deals WHERE id = ?', (deal_id,)).fetchone()
+    conn.close()
+    
+    if deal:
+        return jsonify(dict(deal))
+    else:
+        return jsonify({'error': 'Deal not found'}), 404
+
 @app.route('/api/deals', methods=['POST'])
 def add_deal():
     data = request.get_json()
     conn = get_db_connection()
     conn.execute(
-        'INSERT INTO deals (restaurant, description, price, days, user) VALUES (?, ?, ?, ?, ?)',
-        (data['restaurant'], data['description'], data['price'], data['days'], data['user'])
+        '''
+        INSERT INTO deals 
+        (restaurant, title, description, price, days, hours, cuisine, user, address, placeId)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''',
+        (
+            data['restaurant'],
+            data.get('title', ''),
+            data['description'],
+            data['price'],
+            data['days'],
+            data.get('hours', ''),
+            data.get('cuisine', ''),
+            data['user'],
+            data.get('address', ''),
+            data.get('placeId', '')
+        )
     )
     conn.commit()
     conn.close()
@@ -128,7 +159,6 @@ def register():
     password = data.get('password')
     hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
 
-        
     if not validate_username(email):
         print("Invalid Email")
     else:
@@ -167,7 +197,6 @@ def check_login():
     else:
         return jsonify({'logged_in': False})
     
-# Used to see all users
 @app.route('/api/users', methods=['GET'])
 def debug_users():
     conn = get_db_connection()
@@ -188,7 +217,6 @@ def get_current_user():
         return jsonify({'error': "unathorized"}), 401
     
     conn = get_db_connection()
-    
     user = conn.execute('SELECT * FROM users WHERE email = ?', (user_id,)).fetchone()
     conn.commit()
     conn.close()
