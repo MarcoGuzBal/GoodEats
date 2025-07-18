@@ -41,6 +41,19 @@ function Home() {
       .catch((error) => console.error('Error:', error));
   }, []);
 
+  const handleLogout = () => {
+    fetch('http://localhost:5000/api/logout', {
+      method: 'POST',
+      credentials: 'include', 
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data.message); 
+        setUser(null); 
+      })
+      .catch((error) => console.error('Error logging out:', error));
+  };
+
   function vote(type, id) {
     fetch(`http://localhost:5000/api/deals/${id}/vote`, {
       method: 'POST',
@@ -116,15 +129,18 @@ function Home() {
     <div className="max-w-7xl mx-auto px-4 py-8">
   {/* Log Out Button */}
   <div className="flex justify-end mb-4">
-    <button
-      onClick={() => {
-        localStorage.clear(); 
-        navigate('/login');
-      }}
-      className="text-sm text-blue-700 border border-blue-600 px-4 py-2 rounded-md hover:bg-blue-100 transition"
-    >
-      Log Out
-    </button>
+
+    {user && (
+      <button
+        onClick={() => {
+          localStorage.clear(); 
+          handleLogout()
+          navigate('/login');
+        }}
+        className="text-sm text-blue-700 border border-blue-600 px-4 py-2 rounded-md hover:bg-blue-100 transition"
+      >
+        Log Out
+      </button> )}
   </div>
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-50 via-blue-100 to-blue-200 rounded-xl p-6 mb-10 text-center shadow-md">
@@ -170,12 +186,14 @@ function Home() {
             <span>Open Now</span>
           </label>
 
-          <button
-            onClick={() => navigate('/submit')}
-            className="bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700"
-          >
-            Submit a Deal
-          </button>
+          {user && (
+            <button
+              onClick={() => navigate('/submit')}
+              className="bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700"
+            >
+              Submit a Deal
+            </button>
+          )}
         </div>
       </div>
 
