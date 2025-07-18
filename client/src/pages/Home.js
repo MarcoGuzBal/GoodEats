@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 function Home() {
   const [deals, setDeals] = useState([]);
@@ -15,8 +15,9 @@ function Home() {
     fetch('http://localhost:5000/api/deals')
       .then((res) => res.json())
       .then((data) => {
-        setDeals(data);
-        setFilteredDeals(data);
+        const sorted = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        setDeals(sorted);
+        setFilteredDeals(sorted);
       })
       .catch((err) => console.error("Error fetching deals:", err));
   }, []);
@@ -26,16 +27,10 @@ function Home() {
       method: 'GET',
       credentials: 'include',
     })
-      .then((response) => {
-        console.log('Response status:', response.status);
-        return response.json();
-      })
+      .then((response) => response.json())
       .then((data) => {
-        console.log('Response data:', data);
-        if (data.error) {
-          console.error(data.error);
-        } else {
-          setUser(data); 
+        if (!data.error) {
+          setUser(data);
         }
       })
       .catch((error) => console.error('Error:', error));
@@ -50,8 +45,8 @@ function Home() {
       credentials: 'include',
       body: JSON.stringify({ vote: type }),
     })
-    .then(res => res.json())
-    .then(data => console.log(data));
+      .then(res => res.json())
+      .then(data => console.log(data));
   }
 
   const applyFilters = () => {
@@ -64,7 +59,7 @@ function Home() {
 
     if (locationFilter) {
       result = result.filter(deal =>
-        deal.location && deal.location.toLowerCase().includes(locationFilter.toLowerCase())
+        (deal.address || '').toLowerCase().includes(locationFilter.toLowerCase())
       );
     }
 
@@ -86,46 +81,28 @@ function Home() {
     applyFilters();
   }, [cuisineFilter, locationFilter, openNow]);
 
-
-  const cuisines = [ 
-    'All',
-    'American',
-    'Mexican',
-    'Italian',
-    'Chinese',
-    'Japanese',
-    'Korean',
-    'Thai',
-    'Vietnamese',
-    'Indian',
-    'Middle Eastern',
-    'Mediterranean',
-    'African',
-    'Latin American',
-    'Caribbean',
-    'Soul Food',
-    'Vegan',
-    'Vegetarian',
-    'BBQ',
-    'Seafood',
-    'Desserts',
-    'Cafe / Bakery',
-    'Other'];
+  const cuisines = [
+    'All', 'American', 'Mexican', 'Italian', 'Chinese', 'Japanese', 'Korean',
+    'Thai', 'Vietnamese', 'Indian', 'Middle Eastern', 'Mediterranean',
+    'African', 'Latin American', 'Caribbean', 'Soul Food', 'Vegan',
+    'Vegetarian', 'BBQ', 'Seafood', 'Desserts', 'Cafe / Bakery', 'Other'
+  ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-  {/* Log Out Button */}
-  <div className="flex justify-end mb-4">
-    <button
-      onClick={() => {
-        localStorage.clear(); 
-        navigate('/login');
-      }}
-      className="text-sm text-blue-700 border border-blue-600 px-4 py-2 rounded-md hover:bg-blue-100 transition"
-    >
-      Log Out
-    </button>
-  </div>
+      {/* Log Out */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => {
+            localStorage.clear();
+            navigate('/login');
+          }}
+          className="text-sm text-blue-700 border border-blue-600 px-4 py-2 rounded-md hover:bg-blue-100 transition"
+        >
+          Log Out
+        </button>
+      </div>
+
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-50 via-blue-100 to-blue-200 rounded-xl p-6 mb-10 text-center shadow-md">
         <h1 className="text-5xl font-bold text-blue-800 mb-2">GoodEats</h1>
@@ -169,7 +146,6 @@ function Home() {
             <input type="checkbox" checked={openNow} onChange={() => setOpenNow(!openNow)} />
             <span>Open Now</span>
           </label>
-
           <button
             onClick={() => navigate('/submit')}
             className="bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700"
@@ -179,13 +155,17 @@ function Home() {
         </div>
       </div>
 
-      {/* Deals */}
+      {/* Deal Cards */}
       {filteredDeals.length === 0 ? (
         <p className="text-center text-gray-500">No deals found. Try adjusting your filters.</p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDeals.map((deal) => (
-            <div key={deal.id} className="relative border rounded-xl shadow-md p-5 bg-blue-50 hover:bg-blue-100 hover:shadow-xl transition-transform duration-300">
+            <Link
+              key={deal.id}
+              to={`/deal/${deal.id}`}
+              className="relative border rounded-xl shadow-md p-5 bg-blue-50 hover:bg-blue-100 hover:shadow-xl transition-transform duration-300 block"
+            >
               {deal.upvotes > 10 && (
                 <div className="absolute top-2 right-2 bg-yellow-300 text-xs px-2 py-1 rounded-full shadow text-yellow-900 font-semibold">
                   Top Pick
@@ -195,15 +175,34 @@ function Home() {
               <p className="text-sm text-gray-600">{deal.restaurant}</p>
               <p className="mt-2 text-green-600 font-bold text-lg">${deal.price}</p>
               <p className="text-sm text-gray-600">Cuisine: {deal.cuisine}</p>
-              <p className="text-sm text-gray-600">Location: {deal.location || 'N/A'}</p>
+              <p className="text-sm text-gray-600">📍 {deal.address || 'N/A'}</p>
               <p className="text-sm text-gray-600">Hours: {deal.hours || 'N/A'}</p>
               <div className="flex justify-between items-center mt-2">
-                <button className="text-sm text-green-500" onClick={() => vote('up', deal.id)}>▲ {deal.votes || 0}</button>
-                <button className="text-sm text-red-500" onClick={() => vote('down', deal.id)}>▼ {deal.votes || 0}</button>
+                <button
+                  className="text-sm text-green-500"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    vote('up', deal.id);
+                  }}
+                >
+                  ▲ {deal.votes || 0}
+                </button>
+                <button
+                  className="text-sm text-red-500"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    vote('down', deal.id);
+                  }}
+                >
+                  ▼ {deal.votes || 0}
+                </button>
               </div>
               <p className="mt-2 text-sm text-gray-700">{deal.description}</p>
               <p className="mt-1 text-xs text-gray-400">Posted by: {deal.user || 'Anonymous'}</p>
-            </div>
+              <p className="mt-1 text-xs text-gray-400">
+                Posted on {new Date(deal.timestamp).toLocaleDateString()} at {new Date(deal.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </Link>
           ))}
         </div>
       )}
