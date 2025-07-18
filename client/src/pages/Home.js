@@ -41,6 +41,7 @@ function Home() {
       .catch((error) => console.error('Error:', error));
   }, []);
 
+
   const applyFilters = () => {
     const now = new Date();
     let result = [...deals];
@@ -72,6 +73,7 @@ function Home() {
   useEffect(() => {
     applyFilters();
   }, [cuisineFilter, locationFilter, openNow]);
+
 
   const cuisines = [ 
     'All',
@@ -155,14 +157,13 @@ function Home() {
             <input type="checkbox" checked={openNow} onChange={() => setOpenNow(!openNow)} />
             <span>Open Now</span>
           </label>
-          {user && (
-            <button
-              onClick={() => navigate('/submit')}
-              className="bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700"
-            >
-              Submit a Deal
-            </button>
-          )}
+
+          <button
+            onClick={() => navigate('/submit')}
+            className="bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700"
+          >
+            Submit a Deal
+          </button>
         </div>
       </div>
 
