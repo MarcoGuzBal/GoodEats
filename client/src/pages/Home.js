@@ -6,6 +6,7 @@ function Home() {
   const [filteredDeals, setFilteredDeals] = useState([]);
   const [cuisineFilter, setCuisineFilter] = useState('All');
   const [locationFilter, setLocationFilter] = useState('');
+  const [user, setUser] = useState(null);
   const [openNow, setOpenNow] = useState(false);
   const [radius, setRadius] = useState('5');
   const navigate = useNavigate();
@@ -19,6 +20,27 @@ function Home() {
       })
       .catch((err) => console.error("Error fetching deals:", err));
   }, []);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/@me', {
+      method: 'GET',
+      credentials: 'include',
+    })
+      .then((response) => {
+        console.log('Response status:', response.status);
+        return response.json();
+      })
+      .then((data) => {
+        console.log('Response data:', data);
+        if (data.error) {
+          console.error(data.error);
+        } else {
+          setUser(data); 
+        }
+      })
+      .catch((error) => console.error('Error:', error));
+  }, []);
+
 
   const applyFilters = () => {
     const now = new Date();
@@ -51,6 +73,7 @@ function Home() {
   useEffect(() => {
     applyFilters();
   }, [cuisineFilter, locationFilter, openNow]);
+
 
   const cuisines = [ 
     'All',
@@ -91,6 +114,12 @@ function Home() {
       Log Out
     </button>
   </div>
+
+  const cuisines = ['All', 'Mexican', 'Asian', 'Italian', 'American', 'Indian', 'Middle Eastern', 'Vegan', 'BBQ', 'Seafood'];
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-50 via-blue-100 to-blue-200 rounded-xl p-6 mb-10 text-center shadow-md">
         <h1 className="text-5xl font-bold text-blue-800 mb-2">GoodEats</h1>
@@ -134,12 +163,22 @@ function Home() {
             <input type="checkbox" checked={openNow} onChange={() => setOpenNow(!openNow)} />
             <span>Open Now</span>
           </label>
+
           <button
             onClick={() => navigate('/submit')}
             className="bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700"
           >
             Submit a Deal
           </button>
+
+          {user && (
+            <button
+              onClick={() => navigate('/submit')}
+              className="bg-green-600 text-white px-6 py-2 rounded font-medium hover:bg-green-700"
+            >
+              Submit a Deal
+            </button>
+          )}
         </div>
       </div>
 

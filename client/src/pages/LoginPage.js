@@ -6,6 +6,7 @@ function LoginPage() {
   const [action] = useState("Login");
   const [formData, setFormData] = useState({ email: "", password: "" });
 
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -18,6 +19,7 @@ function LoginPage() {
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });

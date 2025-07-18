@@ -1,11 +1,27 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session
+from flask_session import Session
 from flask_cors import CORS
-from flask_bcrypt import Bcrypt
-
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
+import os
+import shutil
+
 app = Flask(__name__)
-CORS(app)
-bcrypt = Bcrypt(app)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True  
+app.config['SESSION_KEY_PREFIX'] = 'auth_'
+app.secret_key = '9f8b7c4e2a3d1f6e8c9a0b7d5e4f3c2a'
+CORS(app, supports_credentials=True)
+Session(app)
+
+
+def clear_session_files():
+    session_folder = './flask_session'  # or the folder where sessions are stored
+    if os.path.exists(session_folder):
+        shutil.rmtree(session_folder)  # delete the whole session folder
+        os.makedirs(session_folder) 
+        
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
@@ -24,7 +40,7 @@ def init_db():
     c.execute('''
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL
     )
     ''')
@@ -94,53 +110,82 @@ def register():
         return jsonify({'message': 'Invalid JSON'}), 400
     email = data.get("email")
     password = data.get('password')
-    # hashed_password = bcrypt.generate_password_hash(data.get("password"))
-    
+    hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
+
+        
     if not validate_username(email):
         print("Invalid Email")
     else:
         conn = get_db_connection()
         conn.execute(
             'INSERT INTO users (email, password) VALUES (?, ?)',
-            (email, password)
+            (email, hashed_password)
         )
         conn.commit()
         conn.close()
         
-        return jsonify({'message': "Registered successfully!"}), 201
+        return jsonify({'message': "Registered successfully!", 'success': True}), 201
 
 @app.route('/api/login', methods=['POST', 'GET'])
 def login():
     data = request.get_json()
     conn = get_db_connection()
-    if not data:
-        return jsonify({'message': 'Invalid JSON'}), 400
     email = data.get("email")
     password = data.get("password")
     
     user = conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
     conn.commit()
     conn.close()
-    
-    hashed_password = user['password']
-    
-    if password == hashed_password:
         
+    if check_password_hash(user['password'], password):
+        session['user'] = user['email']
         return jsonify({'message': "Successfully Logged In!!", 'success': True}), 201
     else:
         return jsonify({'message': "Invalid password"}), 401
-
-@app.route('/api/debug/users', methods=['GET'])
+    
+@app.route('/api/check_login', methods=['GET'])
+def check_login():
+    if 'user' in session:
+        print("User is logged in")
+        return jsonify({'logged_in': True, 'user_id': session['user']})
+    else:
+        return jsonify({'logged_in': False})
+    
+# Used to see all users
+@app.route('/api/users', methods=['GET'])
 def debug_users():
     conn = get_db_connection()
     users = conn.execute('SELECT * FROM users').fetchall()
     conn.close()
-    for user in users:
-        print(dict(user))  
     return jsonify([dict(user) for user in users]) 
 
+@app.route('/api/logout', methods=["POST"])
+def logout():
+    session.clear()
+    return jsonify({"message": "Logged out successfully"})
+
+@app.route('/@me')
+def get_current_user():
+    user_id = session.get('user')
+    
+    if not user_id:
+        return jsonify({'error': "unathorized"}), 401
+    
+    conn = get_db_connection()
+    
+    user = conn.execute('SELECT * FROM users WHERE email = ?', (user_id,)).fetchone()
+    conn.commit()
+    conn.close()
+    
+    if not user:
+        return jsonify({'error': "User not found"}), 404
+
+    user_dict = dict(user)
+    print(f"User data being sent: {user_dict}") 
+    return jsonify(user_dict) 
 
 
 if __name__ == '__main__':
+    clear_session_files() 
     init_db()
     app.run(debug=True, host='0.0.0.0')
